@@ -3,14 +3,11 @@ name: Publish to GHCR
 on:
   release:
     types: [published]
-  push:
-    tags:
-      - 'v*'
 
 env:
   GHCR_REGISTRY: ghcr.io
-  IMAGE_NAME: python-cuda
-  DOCKERHUB_REGISTRY: docker.io
+  IMAGE_NAME: ${{ github.repository }}
+  DOCKERHUB_REGISTRY: index.docker.io
 
 jobs:
   build-and-push:
@@ -18,6 +15,8 @@ jobs:
     permissions:
       contents: read
       packages: write
+      attestations: write
+      id-token: write
 
     steps:
       - name: Checkout repository
@@ -58,11 +57,22 @@ jobs:
 
       - name: Build and push Docker image to ghcr.io
         uses: docker/build-push-action@v5
+        id: push-ghcr
         with:
           context: .
           push: true
           tags: ${{ steps.meta-ghcr.outputs.tags }}
           labels: ${{ steps.meta-ghcr.outputs.labels }}
+
+
+      - name: Attest
+        uses: actions/attest-build-provenance@v2
+        id: attest-ghcr
+        with:
+          subject-name: ${{ env.GHCR_REGISTRY }}/${{ env.IMAGE_NAME }}
+          subject-digest: ${{ steps.push-ghcr.outputs.digest }}
+          push-to-registry: true
+  
 
       - name: Extract metadata for DockerHub
         id: meta-dockerhub
@@ -76,8 +86,17 @@ jobs:
 
       - name: Build and push Docker image to DockerHub
         uses: docker/build-push-action@v5
+        id: push-dockerhub
         with:
           context: .
           push: true
           tags: ${{ steps.meta-dockerhub.outputs.tags }}
           labels: ${{ steps.meta-dockerhub.outputs.labels }}
+
+      - name: Attest
+        uses: actions/attest-build-provenance@v2
+        id: attest-dockerhub
+        with:
+          subject-name: ${{ env.DOCKERHUB_REGISTRY }}/${{ env.IMAGE_NAME }}
+          subject-digest: ${{ steps.push-dockerhub.outputs.digest }}
+          push-to-registry: true
