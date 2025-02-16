@@ -12,5 +12,3 @@ RUN apt-get update && export DEBIAN_FRONTEND=noninteractive && apt-get install -
   git curl wget ca-certificates fish neovim \
   # clean up
   && apt-get autoremove -y && apt-get clean -y && rm -rf /var/lib/apt/lists/*
-
-CMD [ "/bin/bash" ]

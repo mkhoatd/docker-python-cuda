@@ -7,7 +7,7 @@ on:
 env:
   GHCR_REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
-  DOCKERHUB_REGISTRY: index.docker.io
+  DOCKERHUB_REGISTRY: docker.io
 
 jobs:
   build-and-push:
@@ -97,6 +97,6 @@ jobs:
         uses: actions/attest-build-provenance@v2
         id: attest-dockerhub
         with:
-          subject-name: ${{ env.DOCKERHUB_REGISTRY }}/${{ env.IMAGE_NAME }}
+          subject-name: index.docker.io/${{ env.IMAGE_NAME }}
           subject-digest: ${{ steps.push-dockerhub.outputs.digest }}
           push-to-registry: true
